@@ -7,7 +7,7 @@ import urllib2
 import sys
 import datetime
 
-class DoneException(Exception):pass
+_Done = 0
 
 def chose_site(choice):
     if choice.lower() == "python":
@@ -30,14 +30,12 @@ def deal_target(target):
 def get_index(soup, target):
     target_list = soup.find_all("td", class_="mc")
     if len(target_list) == 0:
-        try:
-            raise DoneException
-        except DoneException:
-            print "Done...."
-            raise KeyboardInterrupt
+        global _Done
+        _Done = 1
+        return -1
     for index, name in enumerate(target_list):
-        # if name.find(text=re.compile(target)):
-        if name.string == target:
+        if name.find(text=re.compile(target)):
+        # if name.string == target:
             return index + 1
     return -1
 
@@ -75,6 +73,9 @@ if __name__ == '__main__':
     print "just wait......"
     while True:
         result = search(get_url(site, page), target)
+        if _Done:
+            print "Done...but didn't found what you want"
+            break
         print "searching page: ", get_url(site, page)
         page += 1
         if result:
