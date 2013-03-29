@@ -44,7 +44,6 @@ def search(url, target):
     soup = BeautifulSoup(html)
     page_index = get_index(soup, target)
     if page_index != -1:
-        _success = True
         tr = soup.find_all("tr")[page_index]
         result = {}
         for index, td in enumerate(tr.children):
