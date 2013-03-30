@@ -39,25 +39,40 @@ def get_index(soup, target):
             return index + 1
     return -1
 
+def search_userinfo(url):
+    doc_html = urllib2.urlopen(url).read()
+    _soup = BeautifulSoup(doc_html)
+    info = _soup.select("div[class=ucb_grxx]")[1]
+    res = {}
+    pattern = re.compile(UnicodeDammit("：").unicode_markup)
+    for i in range(1,5):
+        _res = UnicodeDammit(map(lambda x:re.sub(r"\s","",x),info.contents[i].string.split(":"))[0]).unicode_markup
+        _res = pattern.sub(":", _res).split(":")
+        res[_res[0]] = _res[1]
+    return res
+
 def search(url, target):
     html = urllib2.urlopen(url).read()
     soup = BeautifulSoup(html)
     page_index = get_index(soup, target)
     if page_index != -1:
         tr = soup.find_all("tr")[page_index]
+        userinfo = {}
         result = {}
         for index, td in enumerate(tr.children):
             if td != "\n":
                 if index == 1:
-                    result["rank"] = td.string
+                    result["排名"] = td.string
                 elif index == 3:
-                    result["page"] = td.a.get("href")
+                    result["personal-page"] = td.a.get("href")
+                    userinfo = search_userinfo(result["personal-page"])
                 elif index == 5:
-                    result["name"] = td.string
+                    result["姓名"] = td.string
                 elif index == 7:
-                    result["score"] = td.div.div.string
+                    result["得分"] = td.div.div.string
                 elif index == 9:
-                    result["counts"] = td.string
+                    result["答题数"] = td.string
+        result.update(userinfo)
         return result
     return False
 
@@ -69,18 +84,18 @@ if __name__ == '__main__':
         page = int(sys.argv[3])
     except:
         page = 0
-    print "just wait......"
+    print "请等待......"
     while True:
         result = search(get_url(site, page), target)
         if _Done:
-            print "Done...but didn't found what you want"
+            print "完成搜索 未找到此人的排名信息."
             break
-        print "searching page: ", get_url(site, page)
+        print "搜索:", get_url(site, page)
         page += 1
         if result:
-            print "site-page:  " + get_url(site, page-1)
+            print "排名页:" + get_url(site, page-1)
             for key in result:
                 print key, ":", result[key]
-            print "total use time: ",
+            print "总耗时:",
             print datetime.datetime.now() - start
             break
