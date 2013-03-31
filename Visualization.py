@@ -38,27 +38,29 @@ def get_data(url):
         if int_dot in res.keys():
             res[int_dot] += 1
         else:
-            res[int_dot] = 0
+            res[int_dot] = 1
     return res
 
 if __name__ == '__main__':
     start = datetime.datetime.now()
     site = chose_site(sys.argv[1])
-    start_page = int(sys.argv[2])
-    end_page = int(sys.argv[3])
+    try:
+        page = int(sys.argv[2])
+    except IndexError:
+        page = 0
     result = {}
     print "请等待......"
-    for page in range(start_page, end_page+1):
-        result.update(get_data(get_url(site, page)))
+    while True:
+        res = get_data(get_url(site, page))
+        if res != -1:
+            result.update(res)
         if _Done:
             print "完成搜索"
             break
         print "搜索:", get_url(site, page)
         page += 1
     data = open("data", "a")
-    print result
     for key in result:
-        print key, result[key]
         data.write(str(key)+" "+str(result[key])+"\n")
     data.close()
     print datetime.datetime.now() - start
